@@ -1,0 +1,1623 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة التاريخ والجغرافيا التعليمية</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --history-color: #e74c3c;
+            --geography-color: #27ae60;
+            --light-color: #ecf0f1;
+        }
+        
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f8f9fa;
+            line-height: 1.6;
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        
+        .subject-badge {
+            font-size: 0.8rem;
+            padding: 0.3rem 0.6rem;
+        }
+        
+        .history-badge {
+            background-color: var(--history-color) !important;
+        }
+        
+        .geography-badge {
+            background-color: var(--geography-color) !important;
+        }
+        
+        .book-card, .exam-card {
+            transition: transform 0.3s ease;
+            height: 100%;
+        }
+        
+        .book-card:hover, .exam-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .progress {
+            height: 10px;
+        }
+        
+        .chapter-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .exam-question {
+            background-color: var(--light-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .answer-option {
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .answer-option:hover {
+            background-color: #e9ecef;
+        }
+        
+        .answer-option.selected {
+            background-color: #cce5ff;
+            border: 1px solid #b8daff;
+        }
+        
+        .answer-option.correct {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .answer-option.incorrect {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .timer {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+        
+        .book-content {
+            line-height: 1.8;
+            text-align: justify;
+        }
+        
+        .book-content img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 10px;
+            }
+        }
+        
+        .stats-card {
+            border-radius: 10px;
+            padding: 1.5rem;
+            color: white;
+            margin-bottom: 1rem;
+        }
+        
+        .stats-card.history {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+        
+        .stats-card.geography {
+            background: linear-gradient(135deg, #27ae60, #229954);
+        }
+        
+        .language-switcher {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+        
+        .floating-action-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- شريط التنقل -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-globe-africa me-2"></i>
+                منصة التاريخ والجغرافيا
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#home" onclick="showSection('home')">
+                            <i class="fas fa-home me-1"></i>الرئيسية
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#books" onclick="showSection('books')">
+                            <i class="fas fa-book me-1"></i>الكتب
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#exams" onclick="showSection('exams')">
+                            <i class="fas fa-file-alt me-1"></i>الامتحانات
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#dashboard" onclick="showSection('dashboard')">
+                            <i class="fas fa-chart-line me-1"></i>الإحصائيات
+                        </a>
+                    </li>
+                </ul>
+                
+                <div class="d-flex align-items-center">
+                    <div class="dropdown me-3">
+                        <button class="btn btn-outline-light dropdown-toggle" type="button" id="gradeDropdown" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-graduate me-1"></i>الصف العاشر
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" onclick="changeGrade('الصف التاسع')">الصف التاسع</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="changeGrade('الصف العاشر')">الصف العاشر</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="changeGrade('الصف الحادي عشر')">الصف الحادي عشر</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="changeGrade('الصف الثاني عشر')">الصف الثاني عشر</a></li>
+                        </ul>
+                    </div>
+                    
+                    <button class="btn btn-light" onclick="toggleDarkMode()">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- المحتوى الرئيسي -->
+    <div class="container mt-4">
+        <!-- قسم الرئيسية -->
+        <div id="home-section" class="section">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card shadow">
+                        <div class="card-body text-center">
+                            <h1 class="display-4 text-primary mb-3">مرحباً بكم في المنصة التعليمية</h1>
+                            <p class="lead">منصة متكاملة لدراسة التاريخ والجغرافيا والتدرب على الامتحانات الإلكترونية</p>
+                            <div class="row mt-4">
+                                <div class="col-md-6 mb-3">
+                                    <div class="card border-primary">
+                                        <div class="card-body">
+                                            <i class="fas fa-landmark fa-3x text-primary mb-3"></i>
+                                            <h4>التاريخ</h4>
+                                            <p>استكشف الحضارات والأحداث التاريخية المهمة</p>
+                                            <button class="btn btn-outline-primary" onclick="showSection('books')">استعرض كتب التاريخ</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="card border-success">
+                                        <div class="card-body">
+                                            <i class="fas fa-globe-africa fa-3x text-success mb-3"></i>
+                                            <h4>الجغرافيا</h4>
+                                            <p>تعرف على التضاريس والمناخ والموارد الطبيعية</p>
+                                            <button class="btn btn-outline-success" onclick="showSection('books')">استعرض كتب الجغرافيا</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card shadow mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0"><i class="fas fa-bell me-2"></i>آخر التحديثات</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group">
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">امتحان جغرافيا - الوحدة الثالثة</h6>
+                                        <small class="text-muted">منذ 3 أيام</small>
+                                    </div>
+                                    <p class="mb-1">تم إضافة امتحان جديد للجغرافيا عن التضاريس والمناخ</p>
+                                    <button class="btn btn-sm btn-success mt-2" onclick="showSection('exams')">بدء الامتحان</button>
+                                </div>
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">كتاب تاريخ - الحضارة الإسلامية</h6>
+                                        <small class="text-muted">منذ أسبوع</small>
+                                    </div>
+                                    <p class="mb-1">تم تحديث كتاب التاريخ بإضافة فصل جديد عن الحضارة الإسلامية</p>
+                                    <button class="btn btn-sm btn-primary mt-2" onclick="showSection('books')">قراءة الكتاب</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card shadow">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>إحصائيات سريعة</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="stats-card history">
+                                <h6><i class="fas fa-landmark me-2"></i>التاريخ</h6>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h4 class="mb-0">8</h4>
+                                        <small>كتاب</small>
+                                    </div>
+                                    <div>
+                                        <h4 class="mb-0">15</h4>
+                                        <small>امتحان</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="stats-card geography">
+                                <h6><i class="fas fa-globe-africa me-2"></i>الجغرافيا</h6>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h4 class="mb-0">6</h4>
+                                        <small>كتاب</small>
+                                    </div>
+                                    <div>
+                                        <h4 class="mb-0">12</h4>
+                                        <small>امتحان</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center mt-3">
+                                <div class="progress mb-2">
+                                    <div class="progress-bar bg-success" style="width: 75%">75%</div>
+                                </div>
+                                <small>تقدمك الدراسي هذا الشهر</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- قسم الكتب -->
+        <div id="books-section" class="section" style="display: none;">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card shadow">
+                        <div class="card-body">
+                            <h3 class="card-title"><i class="fas fa-book me-2"></i>الكتب التعليمية</h3>
+                            
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                        <input type="text" class="form-control" id="bookSearch" placeholder="ابحث عن كتاب..." onkeyup="filterBooks()">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="btn-group w-100" role="group">
+                                        <button type="button" class="btn btn-outline-primary active" onclick="filterBooksBySubject('all')">الكل</button>
+                                        <button type="button" class="btn btn-outline-danger" onclick="filterBooksBySubject('history')">التاريخ</button>
+                                        <button type="button" class="btn btn-outline-success" onclick="filterBooksBySubject('geography')">الجغرافيا</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row" id="booksContainer">
+                                <!-- سيتم ملء الكتب بواسطة JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- قسم عرض الكتاب -->
+        <div id="book-view-section" class="section" style="display: none;">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <button class="btn btn-outline-secondary mb-3" onclick="showSection('books')">
+                        <i class="fas fa-arrow-right me-1"></i>العودة للكتب
+                    </button>
+                    
+                    <div class="card shadow">
+                        <div class="card-header bg-primary text-white">
+                            <h4 class="mb-0" id="bookViewTitle">عنوان الكتاب</h4>
+                            <div id="bookViewInfo" class="mt-2"></div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6 class="mb-0">فهرس المحتويات</h6>
+                                        </div>
+                                        <div class="card-body chapter-list" id="chapterList">
+                                            <!-- الفصول ستظهر هنا -->
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-9">
+                                    <div class="book-content" id="bookContent">
+                                        <!-- محتوى الكتاب سيظهر هنا -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- قسم الامتحانات -->
+        <div id="exams-section" class="section" style="display: none;">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card shadow">
+                        <div class="card-body">
+                            <h3 class="card-title"><i class="fas fa-file-alt me-2"></i>الامتحانات الإلكترونية</h3>
+                            
+                            <div class="row mb-4">
+                                <div class="col-md-8">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                        <input type="text" class="form-control" id="examSearch" placeholder="ابحث عن امتحان..." onkeyup="filterExams()">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <select class="form-select" id="examFilter" onchange="filterExams()">
+                                        <option value="all">جميع الامتحانات</option>
+                                        <option value="history">التاريخ فقط</option>
+                                        <option value="geography">الجغرافيا فقط</option>
+                                        <option value="completed">المنتهية</option>
+                                        <option value="active">النشطة</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row" id="examsContainer">
+                                <!-- سيتم ملء الامتحانات بواسطة JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- قسم عرض الامتحان -->
+        <div id="exam-view-section" class="section" style="display: none;">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <button class="btn btn-outline-secondary mb-3" onclick="showSection('exams')">
+                        <i class="fas fa-arrow-right me-1"></i>العودة للامتحانات
+                    </button>
+                    
+                    <div class="card shadow">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4 class="mb-0" id="examViewTitle">عنوان الامتحان</h4>
+                                <div id="examViewInfo" class="mt-1"></div>
+                            </div>
+                            <div class="timer" id="examTimer">00:00</div>
+                        </div>
+                        <div class="card-body">
+                            <div id="examQuestionsContainer">
+                                <!-- أسئلة الامتحان ستظهر هنا -->
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-4">
+                                <button class="btn btn-secondary" id="prevQuestionBtn" onclick="prevQuestion()" disabled>
+                                    <i class="fas fa-arrow-right me-1"></i>السابق
+                                </button>
+                                
+                                <div>
+                                    <span id="currentQuestionNumber">1</span> / <span id="totalQuestions">10</span>
+                                </div>
+                                
+                                <button class="btn btn-primary" id="nextQuestionBtn" onclick="nextQuestion()">
+                                    التالي <i class="fas fa-arrow-left me-1"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="text-center mt-4">
+                                <button class="btn btn-success btn-lg" id="submitExamBtn" onclick="submitExam()" style="display: none;">
+                                    <i class="fas fa-paper-plane me-2"></i>تسليم الامتحان
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- قسم نتيجة الامتحان -->
+        <div id="exam-result-section" class="section" style="display: none;">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card shadow">
+                        <div class="card-body text-center">
+                            <h2 class="mb-4"><i class="fas fa-trophy text-warning me-2"></i>نتيجة الامتحان</h2>
+                            
+                            <div class="row justify-content-center">
+                                <div class="col-md-6">
+                                    <div class="card mb-4">
+                                        <div class="card-body">
+                                            <h5 id="resultExamTitle">عنوان الامتحان</h5>
+                                            <div class="display-1 fw-bold text-primary" id="resultScore">0</div>
+                                            <div class="progress mt-3 mb-2" style="height: 20px;">
+                                                <div class="progress-bar bg-success" id="resultProgress" style="width: 0%"></div>
+                                            </div>
+                                            <p>النسبة المئوية: <span id="resultPercentage">0%</span></p>
+                                            
+                                            <div class="mt-3">
+                                                <p><i class="fas fa-check-circle text-success me-2"></i>الإجابات الصحيحة: <span id="correctAnswers">0</span></p>
+                                                <p><i class="fas fa-times-circle text-danger me-2"></i>الإجابات الخاطئة: <span id="wrongAnswers">0</span></p>
+                                                <p><i class="fas fa-clock text-info me-2"></i>الوقت المستغرق: <span id="timeTaken">0:00</span></p>
+                                            </div>
+                                            
+                                            <div class="mt-4">
+                                                <button class="btn btn-primary me-2" onclick="showSection('exams')">
+                                                    <i class="fas fa-list me-1"></i>عودة للامتحانات
+                                                </button>
+                                                <button class="btn btn-outline-primary" onclick="reviewExam()">
+                                                    <i class="fas fa-eye me-1"></i>مراجعة الإجابات
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- قسم الإحصائيات -->
+        <div id="dashboard-section" class="section" style="display: none;">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card shadow">
+                        <div class="card-body">
+                            <h3 class="card-title"><i class="fas fa-chart-line me-2"></i>لوحة الإحصائيات</h3>
+                            
+                            <div class="row mb-4">
+                                <div class="col-md-3">
+                                    <div class="card text-white bg-primary mb-3">
+                                        <div class="card-body">
+                                            <h6 class="card-title">الكتب المقروءة</h6>
+                                            <h2 class="card-text">7</h2>
+                                            <small>من أصل 14 كتاب</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card text-white bg-success mb-3">
+                                        <div class="card-body">
+                                            <h6 class="card-title">الامتحانات المكتملة</h6>
+                                            <h2 class="card-text">10</h2>
+                                            <small>من أصل 27 امتحان</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card text-white bg-warning mb-3">
+                                        <div class="card-body">
+                                            <h6 class="card-title">متوسط الدرجات</h6>
+                                            <h2 class="card-text">82%</h2>
+                                            <small>في آخر 5 امتحانات</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card text-white bg-info mb-3">
+                                        <div class="card-body">
+                                            <h6 class="card-title">ساعات الدراسة</h6>
+                                            <h2 class="card-text">45</h2>
+                                            <small>في هذا الشهر</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="card mb-4">
+                                        <div class="card-header">
+                                            <h6 class="mb-0">تقدمك في المواد</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="mb-3">
+                                                <h6>التاريخ <span class="float-left">75%</span></h6>
+                                                <div class="progress">
+                                                    <div class="progress-bar bg-danger" style="width: 75%"></div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <h6>الجغرافيا <span class="float-left">85%</span></h6>
+                                                <div class="progress">
+                                                    <div class="progress-bar bg-success" style="width: 85%"></div>
+                                                </div>
+                                            </div>
+                                            
+                                            <canvas id="progressChart" height="150"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6 class="mb-0">آخر النتائج</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="list-group">
+                                                <div class="list-group-item">
+                                                    <div class="d-flex w-100 justify-content-between">
+                                                        <h6 class="mb-1">جغرافيا - التضاريس</h6>
+                                                        <small class="text-success">92%</small>
+                                                    </div>
+                                                    <small>منذ 2 يوم</small>
+                                                </div>
+                                                <div class="list-group-item">
+                                                    <div class="d-flex w-100 justify-content-between">
+                                                        <h6 class="mb-1">تاريخ - الحضارة الإسلامية</h6>
+                                                        <small class="text-warning">78%</small>
+                                                    </div>
+                                                    <small>منذ 5 أيام</small>
+                                                </div>
+                                                <div class="list-group-item">
+                                                    <div class="d-flex w-100 justify-content-between">
+                                                        <h6 class="mb-1">جغرافيا - المناخ</h6>
+                                                        <small class="text-success">88%</small>
+                                                    </div>
+                                                    <small>منذ أسبوع</small>
+                                                </div>
+                                                <div class="list-group-item">
+                                                    <div class="d-flex w-100 justify-content-between">
+                                                        <h6 class="mb-1">تاريخ - الدولة العثمانية</h6>
+                                                        <small class="text-danger">65%</small>
+                                                    </div>
+                                                    <small>منذ أسبوعين</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- زر الإجراء العائم -->
+    <button class="floating-action-btn btn btn-primary" onclick="startQuickExam()">
+        <i class="fas fa-bolt"></i>
+    </button>
+
+    <!-- زر تبديل اللغة -->
+    <div class="language-switcher">
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-primary active">العربية</button>
+            <button type="button" class="btn btn-outline-primary">English</button>
+        </div>
+    </div>
+
+    <!-- تذييل الصفحة -->
+    <footer class="bg-dark text-white mt-5 py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>منصة التاريخ والجغرافيا</h5>
+                    <p>منصة تعليمية متكاملة لمساعدة الطلاب على دراسة مواد التاريخ والجغرافيا والتحضير للامتحانات.</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>روابط سريعة</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#home" class="text-light" onclick="showSection('home')">الرئيسية</a></li>
+                        <li><a href="#books" class="text-light" onclick="showSection('books')">الكتب</a></li>
+                        <li><a href="#exams" class="text-light" onclick="showSection('exams')">الامتحانات</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>اتصل بنا</h5>
+                    <p><i class="fas fa-envelope me-2"></i> info@history-geo.edu</p>
+                    <p><i class="fas fa-phone me-2"></i> +123 456 7890</p>
+                </div>
+            </div>
+            <hr class="bg-light">
+            <div class="text-center">
+                <p>&copy; 2023 منصة التاريخ والجغرافيا التعليمية. جميع الحقوق محفوظة.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        // بيانات التطبيق
+        const appData = {
+            currentUser: {
+                name: "أحمد محمد",
+                grade: "الصف العاشر",
+                progress: 75
+            },
+            books: [
+                {
+                    id: 1,
+                    title: "التاريخ - الحضارة الإسلامية",
+                    subject: "history",
+                    grade: "10",
+                    description: "كتاب شامل عن الحضارة الإسلامية من البعثة إلى نهاية العصر العباسي",
+                    chapters: 8,
+                    pages: 240,
+                    color: "danger",
+                    chaptersList: [
+                        { number: 1, title: "مقدمة في الحضارة الإسلامية", content: "الحضارة الإسلامية هي حضارة قامت على أساس الإسلام..." },
+                        { number: 2, title: "عصر النبوة", content: "بدأت الحضارة الإسلامية في عهد النبي محمد صلى الله عليه وسلم..." },
+                        { number: 3, title: "الخلافة الراشدة", content: "بعد وفاة النبي، تولى الخلافة أبو بكر الصديق ثم عمر بن الخطاب..." }
+                    ]
+                },
+                {
+                    id: 2,
+                    title: "الجغرافيا - التضاريس والمناخ",
+                    subject: "geography",
+                    grade: "10",
+                    description: "دراسة التضاريس الأرضية والمناخ والعوامل المؤثرة فيه",
+                    chapters: 6,
+                    pages: 180,
+                    color: "success",
+                    chaptersList: [
+                        { number: 1, title: "مقدمة في الجغرافيا الطبيعية", content: "الجغرافيا الطبيعية تدرس الظواهر الطبيعية على سطح الأرض..." },
+                        { number: 2, title: "التضاريس الأرضية", content: "تشمل التضاريس الجبال والهضاب والسهول والوديان..." },
+                        { number: 3, title: "العوامل المؤثرة في المناخ", content: "يتأثر المناخ بعدة عوامل مثل خط العرض والارتفاع عن سطح البحر..." }
+                    ]
+                },
+                {
+                    id: 3,
+                    title: "تاريخ الدولة العثمانية",
+                    subject: "history",
+                    grade: "11",
+                    description: "تتبع تاريخ الدولة العثمانية من النشأة إلى السقوط",
+                    chapters: 10,
+                    pages: 320,
+                    color: "danger",
+                    chaptersList: [
+                        { number: 1, title: "نشأة الدولة العثمانية", content: "بدأت الدولة العثمانية كإمارة صغيرة في آسيا الصغرى..." },
+                        { number: 2, title: "الفتوحات العثمانية", content: "تمكن العثمانيون من فتح القسطنطينية عام 1453..." }
+                    ]
+                },
+                {
+                    id: 4,
+                    title: "جغرافيا العالم العربي",
+                    subject: "geography",
+                    grade: "10",
+                    description: "دراسة الخصائص الجغرافية للوطن العربي",
+                    chapters: 7,
+                    pages: 210,
+                    color: "success",
+                    chaptersList: [
+                        { number: 1, title: "الموقع والمساحة", content: "يقع الوطن العربي بين قارتي آسيا وأفريقيا..." },
+                        { number: 2, title: "الموارد الطبيعية", content: "يتمتع الوطن العربي بثروات طبيعية هائلة..." }
+                    ]
+                }
+            ],
+            exams: [
+                {
+                    id: 1,
+                    title: "امتحان جغرافيا - التضاريس",
+                    subject: "geography",
+                    grade: "10",
+                    description: "امتحان قصير عن التضاريس الأرضية",
+                    duration: 30,
+                    questionsCount: 10,
+                    status: "active",
+                    questions: [
+                        {
+                            id: 1,
+                            text: "ما هي أعلى قمة جبلية في العالم؟",
+                            options: ["إفرست", "كليمنجارو", "الألب", "الهملايا"],
+                            correctAnswer: 0
+                        },
+                        {
+                            id: 2,
+                            text: "أي من التالي يعتبر من السهول الفيضية؟",
+                            options: ["سهل الغانج", "الصحراء الكبرى", "جبال الأطلس", "هضبة الأناضول"],
+                            correctAnswer: 0
+                        },
+                        {
+                            id: 3,
+                            text: "ما العامل الرئيسي في تشكيل الوديان؟",
+                            options: ["الرياح", "المياه الجارية", "الزلازل", "البراكين"],
+                            correctAnswer: 1
+                        }
+                    ]
+                },
+                {
+                    id: 2,
+                    title: "امتحان تاريخ - الحضارة الإسلامية",
+                    subject: "history",
+                    grade: "10",
+                    description: "امتحان عن الحضارة الإسلامية في عصر النبوة",
+                    duration: 45,
+                    questionsCount: 15,
+                    status: "completed",
+                    questions: [
+                        {
+                            id: 1,
+                            text: "في أي عام كانت الهجرة النبوية؟",
+                            options: ["610 م", "622 م", "630 م", "632 م"],
+                            correctAnswer: 1
+                        },
+                        {
+                            id: 2,
+                            text: "ما هي أول معركة في الإسلام؟",
+                            options: ["بدر", "أحد", "الخندق", "اليرموك"],
+                            correctAnswer: 0
+                        }
+                    ]
+                },
+                {
+                    id: 3,
+                    title: "امتحان جغرافيا - المناخ",
+                    subject: "geography",
+                    grade: "10",
+                    description: "اختبار عن العوامل المؤثرة في المناخ",
+                    duration: 25,
+                    questionsCount: 8,
+                    status: "active",
+                    questions: [
+                        {
+                            id: 1,
+                            text: "ما هو خط الاستواء؟",
+                            options: ["خط وهمي يقسم الأرض", "أطول نهر في العالم", "أعلى جبل", "صحراء كبيرة"],
+                            correctAnswer: 0
+                        },
+                        {
+                            id: 2,
+                            text: "أي من التالي يؤثر في كمية الأمطار؟",
+                            options: ["الرياح", "درجة الحرارة", "الرطوبة", "جميع ما سبق"],
+                            correctAnswer: 3
+                        }
+                    ]
+                }
+            ],
+            currentExam: null,
+            currentBook: null,
+            examAnswers: {},
+            currentQuestionIndex: 0,
+            examTimer: null,
+            examTimeLeft: 0
+        };
+
+        // تهيئة التطبيق
+        document.addEventListener('DOMContentLoaded', function() {
+            renderBooks();
+            renderExams();
+            updateUserInfo();
+            
+            // عرض القسم الرئيسي أولاً
+            showSection('home');
+            
+            // تهيئة الرسم البياني
+            initChart();
+        });
+
+        // عرض قسم معين وإخفاء الآخرين
+        function showSection(sectionId) {
+            // إخفاء جميع الأقسام
+            document.querySelectorAll('.section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // إظهار القسم المطلوب
+            document.getElementById(sectionId + '-section').style.display = 'block';
+            
+            // إعادة تعليمات التنقل النشطة
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            // تحديث التنقل النشط
+            if (sectionId !== 'book-view' && sectionId !== 'exam-view' && sectionId !== 'exam-result') {
+                const activeNav = document.querySelector(`[href="#${sectionId}"]`);
+                if (activeNav) activeNav.classList.add('active');
+            }
+            
+            // إذا كان قسم الكتب، قم بتحديث العرض
+            if (sectionId === 'books') {
+                renderBooks();
+            }
+            
+            // إذا كان قسم الامتحانات، قم بتحديث العرض
+            if (sectionId === 'exams') {
+                renderExams();
+            }
+            
+            // إيقاف مؤقت الامتحان إذا كان يعمل
+            if (sectionId !== 'exam-view' && appData.examTimer) {
+                clearInterval(appData.examTimer);
+                appData.examTimer = null;
+            }
+        }
+
+        // عرض معلومات المستخدم
+        function updateUserInfo() {
+            const gradeBtn = document.querySelector('#gradeDropdown');
+            if (gradeBtn) {
+                const icon = gradeBtn.querySelector('i');
+                gradeBtn.innerHTML = `${icon.outerHTML} ${appData.currentUser.grade}`;
+            }
+        }
+
+        // تغيير الصف الدراسي
+        function changeGrade(grade) {
+            appData.currentUser.grade = grade;
+            updateUserInfo();
+            renderBooks();
+            renderExams();
+            
+            // إظهار تنبيه
+            showAlert(`تم تغيير الصف إلى ${grade}`, 'success');
+        }
+
+        // عرض الكتب
+        function renderBooks() {
+            const container = document.getElementById('booksContainer');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            appData.books.forEach(book => {
+                const bookCard = document.createElement('div');
+                bookCard.className = 'col-md-6 col-lg-4 mb-4';
+                bookCard.innerHTML = `
+                    <div class="card book-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <span class="badge bg-${book.color} subject-badge">
+                                    ${book.subject === 'history' ? 'التاريخ' : 'الجغرافيا'}
+                                </span>
+                                <span class="text-muted">الصف ${book.grade}</span>
+                            </div>
+                            <h5 class="card-title">${book.title}</h5>
+                            <p class="card-text text-muted">${book.description}</p>
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <small><i class="fas fa-list-ol me-1"></i> ${book.chapters} فصول</small>
+                                <small><i class="fas fa-file me-1"></i> ${book.pages} صفحة</small>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0">
+                            <button class="btn btn-outline-${book.color} w-100" onclick="viewBook(${book.id})">
+                                <i class="fas fa-book-open me-1"></i> قراءة الكتاب
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(bookCard);
+            });
+        }
+
+        // تصفية الكتب
+        function filterBooks() {
+            const searchTerm = document.getElementById('bookSearch').value.toLowerCase();
+            const subjectFilter = document.querySelector('.btn-group .active').getAttribute('onclick');
+            let filteredBooks = appData.books;
+            
+            // تصفية حسب البحث
+            if (searchTerm) {
+                filteredBooks = filteredBooks.filter(book => 
+                    book.title.toLowerCase().includes(searchTerm) || 
+                    book.description.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            // تصفية حسب المادة
+            if (subjectFilter.includes("'history'")) {
+                filteredBooks = filteredBooks.filter(book => book.subject === 'history');
+            } else if (subjectFilter.includes("'geography'")) {
+                filteredBooks = filteredBooks.filter(book => book.subject === 'geography');
+            }
+            
+            // تحديث العرض
+            const container = document.getElementById('booksContainer');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            if (filteredBooks.length === 0) {
+                container.innerHTML = `
+                    <div class="col-12 text-center py-5">
+                        <i class="fas fa-book fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">لا توجد كتب تطابق معايير البحث</h5>
+                    </div>
+                `;
+                return;
+            }
+            
+            filteredBooks.forEach(book => {
+                const bookCard = document.createElement('div');
+                bookCard.className = 'col-md-6 col-lg-4 mb-4';
+                bookCard.innerHTML = `
+                    <div class="card book-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <span class="badge bg-${book.color} subject-badge">
+                                    ${book.subject === 'history' ? 'التاريخ' : 'الجغرافيا'}
+                                </span>
+                                <span class="text-muted">الصف ${book.grade}</span>
+                            </div>
+                            <h5 class="card-title">${book.title}</h5>
+                            <p class="card-text text-muted">${book.description}</p>
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <small><i class="fas fa-list-ol me-1"></i> ${book.chapters} فصول</small>
+                                <small><i class="fas fa-file me-1"></i> ${book.pages} صفحة</small>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0">
+                            <button class="btn btn-outline-${book.color} w-100" onclick="viewBook(${book.id})">
+                                <i class="fas fa-book-open me-1"></i> قراءة الكتاب
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(bookCard);
+            });
+        }
+
+        // تصفية الكتب حسب المادة
+        function filterBooksBySubject(subject) {
+            // تحديث الأزرار النشطة
+            document.querySelectorAll('.btn-group .btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            filterBooks();
+        }
+
+        // عرض كتاب معين
+        function viewBook(bookId) {
+            const book = appData.books.find(b => b.id === bookId);
+            if (!book) return;
+            
+            appData.currentBook = book;
+            
+            // تحديث العنوان والمعلومات
+            document.getElementById('bookViewTitle').textContent = book.title;
+            document.getElementById('bookViewInfo').innerHTML = `
+                <span class="badge bg-${book.color} me-2">${book.subject === 'history' ? 'التاريخ' : 'الجغرافيا'}</span>
+                <span class="me-2"><i class="fas fa-user-graduate me-1"></i> الصف ${book.grade}</span>
+                <span><i class="fas fa-file me-1"></i> ${book.pages} صفحة</span>
+            `;
+            
+            // عرض فهرس المحتويات
+            const chapterList = document.getElementById('chapterList');
+            chapterList.innerHTML = '';
+            
+            book.chaptersList.forEach(chapter => {
+                const chapterItem = document.createElement('div');
+                chapterItem.className = 'mb-2';
+                chapterItem.innerHTML = `
+                    <a href="#" class="text-decoration-none" onclick="showChapter(${chapter.number})">
+                        <i class="fas fa-file-alt me-2"></i>
+                        الفصل ${chapter.number}: ${chapter.title}
+                    </a>
+                `;
+                chapterList.appendChild(chapterItem);
+            });
+            
+            // عرض الفصل الأول افتراضياً
+            if (book.chaptersList.length > 0) {
+                showChapter(book.chaptersList[0].number);
+            }
+            
+            // الانتقال لقسم عرض الكتاب
+            showSection('book-view');
+        }
+
+        // عرض فصل من الكتاب
+        function showChapter(chapterNumber) {
+            if (!appData.currentBook) return;
+            
+            const chapter = appData.currentBook.chaptersList.find(c => c.number === chapterNumber);
+            if (!chapter) return;
+            
+            const bookContent = document.getElementById('bookContent');
+            bookContent.innerHTML = `
+                <h4 class="mb-4">الفصل ${chapter.number}: ${chapter.title}</h4>
+                <div class="mb-4">
+                    ${chapter.content}
+                </div>
+                <div class="row mt-5">
+                    <div class="col-md-6">
+                        <img src="https://via.placeholder.com/400x250/2c3e50/ecf0f1?text=صورة+توضيحية" class="img-fluid" alt="صورة توضيحية">
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">نقاط مهمة</h6>
+                            </div>
+                            <div class="card-body">
+                                <ul>
+                                    <li>هذه نقاط مهمة من الفصل الحالي</li>
+                                    <li>تساعد في فهم المحتوى</li>
+                                    <li>مفيدة للمراجعة قبل الامتحان</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between mt-4">
+                    <button class="btn btn-outline-secondary" onclick="prevChapter(${chapter.number})" ${chapter.number === 1 ? 'disabled' : ''}>
+                        <i class="fas fa-arrow-right me-1"></i> الفصل السابق
+                    </button>
+                    <button class="btn btn-outline-primary" onclick="nextChapter(${chapter.number})" ${chapter.number === appData.currentBook.chaptersList.length ? 'disabled' : ''}>
+                        الفصل التالي <i class="fas fa-arrow-left me-1"></i>
+                    </button>
+                </div>
+            `;
+            
+            // تحديث الروابط النشطة في الفهرس
+            document.querySelectorAll('#chapterList a').forEach(link => {
+                link.classList.remove('text-primary', 'fw-bold');
+            });
+            
+            const activeLink = document.querySelector(`#chapterList a[onclick="showChapter(${chapterNumber})"]`);
+            if (activeLink) {
+                activeLink.classList.add('text-primary', 'fw-bold');
+            }
+        }
+
+        // الفصل السابق
+        function prevChapter(currentChapter) {
+            if (currentChapter > 1) {
+                showChapter(currentChapter - 1);
+            }
+        }
+
+        // الفصل التالي
+        function nextChapter(currentChapter) {
+            if (appData.currentBook && currentChapter < appData.currentBook.chaptersList.length) {
+                showChapter(currentChapter + 1);
+            }
+        }
+
+        // عرض الامتحانات
+        function renderExams() {
+            const container = document.getElementById('examsContainer');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            appData.exams.forEach(exam => {
+                const examCard = document.createElement('div');
+                examCard.className = 'col-md-6 col-lg-4 mb-4';
+                examCard.innerHTML = `
+                    <div class="card exam-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <span class="badge ${exam.subject === 'history' ? 'bg-danger' : 'bg-success'} subject-badge">
+                                    ${exam.subject === 'history' ? 'التاريخ' : 'الجغرافيا'}
+                                </span>
+                                <span class="badge ${exam.status === 'active' ? 'bg-primary' : 'bg-secondary'}">
+                                    ${exam.status === 'active' ? 'نشط' : 'منتهي'}
+                                </span>
+                            </div>
+                            <h5 class="card-title">${exam.title}</h5>
+                            <p class="card-text text-muted">${exam.description}</p>
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <small><i class="fas fa-clock me-1"></i> ${exam.duration} دقيقة</small>
+                                <small><i class="fas fa-question-circle me-1"></i> ${exam.questionsCount} سؤال</small>
+                                <small><i class="fas fa-user-graduate me-1"></i> الصف ${exam.grade}</small>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0">
+                            <button class="btn ${exam.status === 'active' ? 'btn-primary' : 'btn-secondary'} w-100" onclick="startExam(${exam.id})" ${exam.status !== 'active' ? 'disabled' : ''}>
+                                <i class="fas fa-play-circle me-1"></i> ${exam.status === 'active' ? 'بدء الامتحان' : 'منتهي'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(examCard);
+            });
+        }
+
+        // تصفية الامتحانات
+        function filterExams() {
+            const searchTerm = document.getElementById('examSearch').value.toLowerCase();
+            const filterValue = document.getElementById('examFilter').value;
+            let filteredExams = appData.exams;
+            
+            // تصفية حسب البحث
+            if (searchTerm) {
+                filteredExams = filteredExams.filter(exam => 
+                    exam.title.toLowerCase().includes(searchTerm) || 
+                    exam.description.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            // تصفية حسب المادة والحالة
+            if (filterValue === 'history') {
+                filteredExams = filteredExams.filter(exam => exam.subject === 'history');
+            } else if (filterValue === 'geography') {
+                filteredExams = filteredExams.filter(exam => exam.subject === 'geography');
+            } else if (filterValue === 'completed') {
+                filteredExams = filteredExams.filter(exam => exam.status === 'completed');
+            } else if (filterValue === 'active') {
+                filteredExams = filteredExams.filter(exam => exam.status === 'active');
+            }
+            
+            // تحديث العرض
+            const container = document.getElementById('examsContainer');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            if (filteredExams.length === 0) {
+                container.innerHTML = `
+                    <div class="col-12 text-center py-5">
+                        <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">لا توجد امتحانات تطابق معايير البحث</h5>
+                    </div>
+                `;
+                return;
+            }
+            
+            filteredExams.forEach(exam => {
+                const examCard = document.createElement('div');
+                examCard.className = 'col-md-6 col-lg-4 mb-4';
+                examCard.innerHTML = `
+                    <div class="card exam-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <span class="badge ${exam.subject === 'history' ? 'bg-danger' : 'bg-success'} subject-badge">
+                                    ${exam.subject === 'history' ? 'التاريخ' : 'الجغرافيا'}
+                                </span>
+                                <span class="badge ${exam.status === 'active' ? 'bg-primary' : 'bg-secondary'}">
+                                    ${exam.status === 'active' ? 'نشط' : 'منتهي'}
+                                </span>
+                            </div>
+                            <h5 class="card-title">${exam.title}</h5>
+                            <p class="card-text text-muted">${exam.description}</p>
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <small><i class="fas fa-clock me-1"></i> ${exam.duration} دقيقة</small>
+                                <small><i class="fas fa-question-circle me-1"></i> ${exam.questionsCount} سؤال</small>
+                                <small><i class="fas fa-user-graduate me-1"></i> الصف ${exam.grade}</small>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0">
+                            <button class="btn ${exam.status === 'active' ? 'btn-primary' : 'btn-secondary'} w-100" onclick="startExam(${exam.id})" ${exam.status !== 'active' ? 'disabled' : ''}>
+                                <i class="fas fa-play-circle me-1"></i> ${exam.status === 'active' ? 'بدء الامتحان' : 'منتهي'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(examCard);
+            });
+        }
+
+        // بدء الامتحان
+        function startExam(examId) {
+            const exam = appData.exams.find(e => e.id === examId);
+            if (!exam) return;
+            
+            appData.currentExam = exam;
+            appData.examAnswers = {};
+            appData.currentQuestionIndex = 0;
+            appData.examTimeLeft = exam.duration * 60; // تحويل الدقائق لثواني
+            
+            // تحديث معلومات الامتحان
+            document.getElementById('examViewTitle').textContent = exam.title;
+            document.getElementById('examViewInfo').innerHTML = `
+                <span class="badge ${exam.subject === 'history' ? 'bg-danger' : 'bg-success'} me-2">
+                    ${exam.subject === 'history' ? 'التاريخ' : 'الجغرافيا'}
+                </span>
+                <span class="me-2"><i class="fas fa-clock me-1"></i> ${exam.duration} دقيقة</span>
+                <span><i class="fas fa-question-circle me-1"></i> ${exam.questionsCount} سؤال</span>
+            `;
+            
+            // عرض السؤال الأول
+            showQuestion(0);
+            
+            // بدء المؤقت
+            startTimer();
+            
+            // الانتقال لقسم الامتحان
+            showSection('exam-view');
+        }
+
+        // بدء امتحان سريع
+        function startQuickExam() {
+            // البحث عن أول امتحان نشط
+            const activeExam = appData.exams.find(exam => exam.status === 'active');
+            if (activeExam) {
+                startExam(activeExam.id);
+            } else {
+                showAlert('لا توجد امتحانات نشطة حالياً', 'warning');
+            }
+        }
+
+        // بدء مؤقت الامتحان
+        function startTimer() {
+            // إيقاف أي مؤقت سابق
+            if (appData.examTimer) {
+                clearInterval(appData.examTimer);
+            }
+            
+            // تحديث المؤقت على الشاشة
+            updateTimerDisplay();
+            
+            // بدؤ المؤقت
+            appData.examTimer = setInterval(() => {
+                appData.examTimeLeft--;
+                updateTimerDisplay();
+                
+                // انتهاء الوقت
+                if (appData.examTimeLeft <= 0) {
+                    clearInterval(appData.examTimer);
+                    submitExam();
+                    showAlert('انتهى وقت الامتحان!', 'warning');
+                }
+            }, 1000);
+        }
+
+        // تحديث عرض المؤقت
+        function updateTimerDisplay() {
+            const minutes = Math.floor(appData.examTimeLeft / 60);
+            const seconds = appData.examTimeLeft % 60;
+            document.getElementById('examTimer').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+            // تغيير اللون عند اقتراب انتهاء الوقت
+            if (appData.examTimeLeft < 60) { // أقل من دقيقة
+                document.getElementById('examTimer').classList.remove('text-primary');
+                document.getElementById('examTimer').classList.add('text-danger');
+            }
+        }
+
+        // عرض سؤال الامتحان
+        function showQuestion(questionIndex) {
+            if (!appData.currentExam || !appData.currentExam.questions[questionIndex]) return;
+            
+            const question = appData.currentExam.questions[questionIndex];
+            
+            // تحديث أرقام الأسئلة
+            document.getElementById('currentQuestionNumber').textContent = questionIndex + 1;
+            document.getElementById('totalQuestions').textContent = appData.currentExam.questions.length;
+            
+            // تحديث أزرار التنقل
+            document.getElementById('prevQuestionBtn').disabled = questionIndex === 0;
+            document.getElementById('nextQuestionBtn').disabled = questionIndex === appData.currentExam.questions.length - 1;
+            
+            // إظهار زر التسليم عند السؤال الأخير
+            document.getElementById('submitExamBtn').style.display = 
+                questionIndex === appData.currentExam.questions.length - 1 ? 'block' : 'none';
+            
+            // بناء عرض السؤال
+            const container = document.getElementById('examQuestionsContainer');
+            container.innerHTML = `
+                <div class="exam-question">
+                    <h5>السؤال ${questionIndex + 1}: ${question.text}</h5>
+                    <div class="mt-3" id="optionsContainer">
+                        ${question.options.map((option, index) => `
+                            <div class="answer-option ${appData.examAnswers[question.id] === index ? 'selected' : ''}" 
+                                 onclick="selectAnswer(${question.id}, ${index})">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="question_${question.id}" 
+                                           id="option_${question.id}_${index}" 
+                                           ${appData.examAnswers[question.id] === index ? 'checked' : ''}>
+                                    <label class="form-check-label w-100" for="option_${question.id}_${index}">
+                                        ${option}
+                                    </label>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            
+            appData.currentQuestionIndex = questionIndex;
+        }
+
+        // اختيار إجابة
+        function selectAnswer(questionId, optionIndex) {
+            appData.examAnswers[questionId] = optionIndex;
+            
+            // تحديث عرض الخيارات
+            document.querySelectorAll('#optionsContainer .answer-option').forEach((option, index) => {
+                option.classList.remove('selected');
+                if (index === optionIndex) {
+                    option.classList.add('selected');
+                    option.querySelector('input').checked = true;
+                }
+            });
+        }
+
+        // السؤال السابق
+        function prevQuestion() {
+            if (appData.currentQuestionIndex > 0) {
+                showQuestion(appData.currentQuestionIndex - 1);
+            }
+        }
+
+        // السؤال التالي
+        function nextQuestion() {
+            if (appData.currentExam && appData.currentQuestionIndex < appData.currentExam.questions.length - 1) {
+                showQuestion(appData.currentQuestionIndex + 1);
+            }
+        }
+
+        // تسليم الامتحان
+        function submitExam() {
+            if (!appData.currentExam) return;
+            
+            // إيقاف المؤقت
+            if (appData.examTimer) {
+                clearInterval(appData.examTimer);
+                appData.examTimer = null;
+            }
+            
+            // حساب النتيجة
+            let correctAnswers = 0;
+            let totalQuestions = appData.currentExam.questions.length;
+            
+            appData.currentExam.questions.forEach(question => {
+                if (appData.examAnswers[question.id] === question.correctAnswer) {
+                    correctAnswers++;
+                }
+            });
+            
+            const score = Math.round((correctAnswers / totalQuestions) * 100);
+            const timeTaken = appData.currentExam.duration * 60 - appData.examTimeLeft;
+            const minutesTaken = Math.floor(timeTaken / 60);
+            const secondsTaken = timeTaken % 60;
+            
+            // تحديث صفحة النتيجة
+            document.getElementById('resultExamTitle').textContent = appData.currentExam.title;
+            document.getElementById('resultScore').textContent = score;
+            document.getElementById('resultPercentage').textContent = `${score}%`;
+            document.getElementById('correctAnswers').textContent = correctAnswers;
+            document.getElementById('wrongAnswers').textContent = totalQuestions - correctAnswers;
+            document.getElementById('timeTaken').textContent = `${minutesTaken}:${secondsTaken.toString().padStart(2, '0')}`;
+            
+            // تحديث شريط التقدم
+            const progressBar = document.getElementById('resultProgress');
+            progressBar.style.width = `${score}%`;
+            progressBar.textContent = `${score}%`;
+            
+            // تغيير لون الشريط حسب النتيجة
+            if (score >= 90) {
+                progressBar.classList.remove('bg-success', 'bg-warning', 'bg-danger');
+                progressBar.classList.add('bg-success');
+            } else if (score >= 70) {
+                progressBar.classList.remove('bg-success', 'bg-warning', 'bg-danger');
+                progressBar.classList.add('bg-warning');
+            } else {
+                progressBar.classList.remove('bg-success', 'bg-warning', 'bg-danger');
+                progressBar.classList.add('bg-danger');
+            }
+            
+            // الانتقال لصفحة النتيجة
+            showSection('exam-result');
+            
+            // إظهار تنبيه
+            let message = '';
+            if (score >= 90) {
+                message = 'ممتاز! أداء رائع';
+            } else if (score >= 70) {
+                message = 'جيد جداً! استمر في المذاكرة';
+            } else if (score >= 50) {
+                message = 'مقبول، يمكنك التحسين';
+            } else {
+                message = 'تحتاج للمزيد من المذاكرة';
+            }
+            
+            showAlert(`نقاطك: ${score}/100 - ${message}`, score >= 70 ? 'success' : 'warning');
+        }
+
+        // مراجعة الإجابات
+        function reviewExam() {
+            if (!appData.currentExam) return;
+            
+            // العودة لصفحة الامتحان
+            showSection('exam-view');
+            
+            // عرض السؤال الأول
+            showQuestion(0);
+            
+            // منع تعديل الإجابات
+            document.querySelectorAll('.answer-option').forEach(option => {
+                option.style.pointerEvents = 'none';
+            });
+            
+            // تلوين الإجابات الصحيحة والخاطئة
+            appData.currentExam.questions.forEach((question, index) => {
+                const userAnswer = appData.examAnswers[question.id];
+                const correctAnswer = question.correctAnswer;
+                
+                if (userAnswer !== undefined) {
+                    if (userAnswer === correctAnswer) {
+                        // إجابة صحيحة
+                        setTimeout(() => {
+                            const option = document.querySelector(`#option_${question.id}_${userAnswer}`);
+                            if (option) {
+                                option.closest('.answer-option').classList.add('correct');
+                            }
+                        }, 100);
+                    } else {
+                        // إجابة خاطئة
+                        setTimeout(() => {
+                            const userOption = document.querySelector(`#option_${question.id}_${userAnswer}`);
+                            const correctOption = document.querySelector(`#option_${question.id}_${correctAnswer}`);
+                            
+                            if (userOption) {
+                                userOption.closest('.answer-option').classList.add('incorrect');
+                            }
+                            if (correctOption) {
+                                correctOption.closest('.answer-option').classList.add('correct');
+                            }
+                        }, 100);
+                    }
+                }
+            });
+            
+            // إخفاء زر التسليم
+            document.getElementById('submitExamBtn').style.display = 'none';
+        }
+
+        // تهيئة الرسم البياني
+        function initChart() {
+            const ctx = document.getElementById('progressChart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['الأسبوع 1', 'الأسبوع 2', 'الأسبوع 3', 'الأسبوع 4'],
+                    datasets: [
+                        {
+                            label: 'التاريخ',
+                            data: [65, 70, 75, 78],
+                            borderColor: '#e74c3c',
+                            backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                            tension: 0.3
+                        },
+                        {
+                            label: 'الجغرافيا',
+                            data: [70, 78, 82, 85],
+                            borderColor: '#27ae60',
+                            backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            rtl: true
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: 50,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // تبديل وضع الليل
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const icon = document.querySelector('[onclick="toggleDarkMode()"] i');
+            
+            if (document.body.classList.contains('dark-mode')) {
+                document.body.style.backgroundColor = '#121212';
+                document.body.style.color = '#ffffff';
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+                showAlert('تم تفعيل الوضع الليلي', 'info');
+            } else {
+                document.body.style.backgroundColor = '';
+                document.body.style.color = '';
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+                showAlert('تم إلغاء الوضع الليلي', 'info');
+            }
+        }
+
+        // إظهار تنبيه
+        function showAlert(message, type = 'info') {
+            // إزالة أي تنبيهات سابقة
+            const existingAlert = document.querySelector('.alert-dismissible');
+            if (existingAlert) {
+                existingAlert.remove();
+            }
+            
+            // إنشاء التنبيه
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            alert.style.top = '80px';
+            alert.style.right = '20px';
+            alert.style.zIndex = '1050';
+            alert.style.minWidth = '300px';
+            alert.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(alert);
+            
+            // إزالة التنبيه تلقائياً بعد 3 ثوان
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.remove();
+                }
+            }, 3000);
+        }
+
+        // دالة مساعدة لتنسيق الأرقام
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+    </script>
+</body>
+</html>
